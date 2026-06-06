@@ -1,2 +1,4 @@
+providers = ["python"]
+
 [start]
 cmd = "gunicorn kasir_forumkm.wsgi:application --bind 0.0.0.0:$PORT"
