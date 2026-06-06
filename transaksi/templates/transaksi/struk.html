@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load humanize %}
 <html>
 <head>
     <meta charset="utf-8">
@@ -20,12 +21,12 @@
         <tr>
             <td>{{ item.produk.nama }}</td>
             <td>x{{ item.jumlah }}</td>
-            <td class="text-end">Rp {{ item.subtotal }}</td>
+            <td class="text-end">Rp {{ item.subtotal|floatformat:0|intcomma }}</td>
         </tr>
         {% endfor %}
         <tr class="fw-bold border-top">
             <td colspan="2">TOTAL</td>
-            <td class="text-end">Rp {{ transaksi.total }}</td>
+            <td class="text-end">Rp {{ transaksi.total|floatformat:0|intcomma }}</td>
         </tr>
     </table>
     <hr>
