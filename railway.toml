@@ -2,4 +2,4 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn kasir_forumkm.wsgi:application --bind 0.0.0.0:$PORT"
+startCommand = "cd kasir_forumkm && gunicorn kasir_forumkm.wsgi:application --bind 0.0.0.0:$PORT"
