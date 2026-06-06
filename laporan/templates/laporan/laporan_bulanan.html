@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Laporan Bulanan{% endblock %}
+{% block page_title %}Laporan Bulanan{% endblock %}
+{% block page_subtitle %}Rekap penjualan per bulan{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="form-card py-3">
+            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                <select name="bulan" class="form-select" style="max-width:160px" onchange="this.form.submit()">
+                    {% for b in "123456789101112" %}{% endfor %}
+                    <option value="1" {% if bulan == 1 %}selected{% endif %}>Januari</option>
+                    <option value="2" {% if bulan == 2 %}selected{% endif %}>Februari</option>
+                    <option value="3" {% if bulan == 3 %}selected{% endif %}>Maret</option>
+                    <option value="4" {% if bulan == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if bulan == 5 %}selected{% endif %}>Mei</option>
+                    <option value="6" {% if bulan == 6 %}selected{% endif %}>Juni</option>
+                    <option value="7" {% if bulan == 7 %}selected{% endif %}>Juli</option>
+                    <option value="8" {% if bulan == 8 %}selected{% endif %}>Agustus</option>
+                    <option value="9" {% if bulan == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if bulan == 10 %}selected{% endif %}>Oktober</option>
+                    <option value="11" {% if bulan == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if bulan == 12 %}selected{% endif %}>Desember</option>
+                </select>
+                <input type="number" name="tahun" class="form-control" style="max-width:100px" value="{{ tahun }}" onchange="this.form.submit()">
+                <a href="{% url 'laporan_harian' %}" class="btn btn-outline-primary">← Laporan Harian</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f0fe">💰</div>
+            <div class="stat-value">{{ total_omzet|rupiah }}</div>
+            <div class="stat-label">Total Omzet Bulan Ini</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e6f9f0">🧾</div>
+            <div class="stat-value">{{ total_transaksi }}</div>
+            <div class="stat-label">Jumlah Transaksi</div>
+        </div>
+    </div>
+</div>
+
+<div class="data-card mb-4">
+    <div class="data-card-header">
+        <h6><i class="bi bi-bar-chart-line me-2 text-primary"></i>Grafik Omzet Harian</h6>
+    </div>
+    <div style="padding:20px">
+        <canvas id="grafikOmzet" height="80"></canvas>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-header">
+        <h6><i class="bi bi-receipt me-2 text-primary"></i>Detail Transaksi</h6>
+    </div>
+    <table class="table">
+        <thead>
+            <tr><th>#</th><th>Tanggal</th><th>Total</th><th>Aksi</th></tr>
+        </thead>
+        <tbody>
+            {% for t in transaksi %}
+            <tr>
+                <td><span class="text-muted">#{{ t.pk }}</span></td>
+                <td>{{ t.tanggal|date:"d M Y, H:i" }}</td>
+                <td><strong style="color:#0d6efd">{{ t.total|rupiah}}</strong></td>
+                <td><a href="{% url 'struk' t.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="empty-state"><i class="bi bi-calendar-x"></i><p>Tidak ada transaksi bulan ini</p></div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('grafikOmzet'), {
+    type: 'bar',
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+            label: 'Omzet (Rp)',
+            data: {{ data|safe }},
+            backgroundColor: 'rgba(13,110,253,0.15)',
+            borderColor: '#0d6efd',
+            borderWidth: 2,
+            borderRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: '#f0f4f8' } }, x: { grid: { display: false } } }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Kasir{% endblock %}
+{% block page_title %}Kasir{% endblock %}
+{% block page_subtitle %}Pilih produk dan proses transaksi{% endblock %}
+
+{% block content %}
+<style>
+    .pos-layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 16px;
+        height: calc(100vh - 130px);
+    }
+
+    /* ===== KIRI: Produk ===== */
+    .product-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow: hidden;
+    }
+
+    .search-bar input {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 10px 16px;
+        font-size: 14px;
+        width: 100%;
+        outline: none;
+        transition: border 0.2s;
+    }
+
+    .search-bar input:focus {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .product-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px 12px;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: center;
+        position: relative;
+        user-select: none;
+    }
+
+    .product-card:hover {
+        border-color: #16a34a;
+        box-shadow: 0 4px 12px rgba(22,163,74,0.15);
+        transform: translateY(-2px);
+    }
+
+    .product-card.selected {
+        border-color: #16a34a;
+        background: #f0fdf4;
+    }
+
+    .product-card .emoji {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .product-card .name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .product-card .price {
+        font-size: 13px;
+        color: #16a34a;
+        font-weight: 700;
+    }
+
+    .product-card .stok-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .product-card .qty-badge {
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        background: #16a34a;
+        color: white;
+        font-size: 12px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    /* ===== KANAN: Keranjang ===== */
+    .cart-panel {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .cart-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .cart-header h6 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 15px;
+        color: #1e293b;
+    }
+
+    .cart-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+
+    .cart-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #94a3b8;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .cart-empty i { font-size: 40px; margin-bottom: 8px; }
+    .cart-empty p { font-size: 13px; margin: 0; }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 6px;
+        background: #f8fafc;
+    }
+
+    .cart-item .item-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .cart-item .item-price {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .qty-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        transition: all 0.1s;
+    }
+
+    .qty-btn:hover { background: #f1f5f9; }
+    .qty-btn.minus:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .qty-btn.plus:hover { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+
+    .qty-num {
+        font-size: 14px;
+        font-weight: 700;
+        min-width: 20px;
+        text-align: center;
+        color: #1e293b;
+    }
+
+    .cart-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .total-row .label {
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .total-row .amount {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .btn-checkout {
+        width: 100%;
+        padding: 14px;
+        background: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-checkout:hover { background: #15803d; }
+    .btn-checkout:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .btn-clear {
+        width: 100%;
+        padding: 8px;
+        background: transparent;
+        color: #94a3b8;
+        border: none;
+        font-size: 12px;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: color 0.15s;
+    }
+
+    .btn-clear:hover { color: #dc2626; }
+</style>
+
+<form method="post" id="posForm">
+    {% csrf_token %}
+
+    <!-- Input hidden untuk cart -->
+    <div id="hiddenInputs"></div>
+
+    <div class="pos-layout">
+
+        <!-- ===== KIRI: Produk ===== -->
+        <div class="product-panel">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍  Cari produk..." oninput="filterProduk()">
+            </div>
+
+            <div class="product-grid" id="productGrid">
+                {% for p in produk_list %}
+                <div class="product-card" id="card-{{ p.pk }}"
+                     onclick="tambahKeranjang({{ p.pk }}, '{{ p.nama }}', {{ p.harga }}, {{ p.stok }})"
+                     data-name="{{ p.nama|lower }}">
+                    <span class="stok-badge">{{ p.stok }}</span>
+                    <div class="emoji">
+                        {% if p.kategori.nama == 'Minuman' %}🥤
+                        {% elif p.kategori.nama == 'Makanan' %}🍱
+                        {% elif p.kategori.nama == 'Snack' %}🍿
+                        {% else %}📦{% endif %}
+                    </div>
+                    <div class="name">{{ p.nama }}</div>
+                    <div class="price"> {{ p.harga|rupiah }}</div>
+                </div>
+                {% empty %}
+                <div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:40px">
+                    <i class="bi bi-box-seam" style="font-size:40px"></i>
+                    <p>Belum ada produk tersedia</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ===== KANAN: Keranjang ===== -->
+        <div class="cart-panel">
+            <div class="cart-header">
+                <h6>🛒 Keranjang</h6>
+                <span id="itemCount" style="font-size:12px;color:#64748b">0 item</span>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+                <div class="cart-empty" id="emptyMsg">
+                    <i class="bi bi-cart3"></i>
+                    <p>Klik produk untuk<br>menambahkan ke keranjang</p>
+                </div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="total-row">
+                    <span class="label">Total</span>
+                    <span class="amount" id="totalAmount">Rp 0</span>
+                </div>
+                <button type="submit" class="btn-checkout" id="checkoutBtn" disabled>
+                    <i class="bi bi-check-circle"></i> Proses Transaksi
+                </button>
+                <button type="button" class="btn-clear" onclick="clearCart()">
+                    Kosongkan keranjang
+                </button>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+ 
+    let cart = {};
+
+    function formatRp(n) {
+        return 'Rp ' + parseInt(n).toLocaleString('id-ID');
+    }
+
+    function tambahKeranjang(id, nama, harga, stok) {
+        if (cart[id]) {
+            if (cart[id].qty >= stok) {
+                alert('Stok tidak mencukupi!');
+                return;
+            }
+            cart[id].qty++;
+        } else {
+            cart[id] = { nama, harga, qty: 1, stok };
+        }
+        renderCart();
+    }
+
+    function kurangItem(id) {
+        if (!cart[id]) return;
+        cart[id].qty--;
+        if (cart[id].qty <= 0) delete cart[id];
+        renderCart();
+    }
+
+    function tambahItem(id) {
+        if (!cart[id]) return;
+        if (cart[id].qty >= cart[id].stok) {
+            alert('Stok tidak mencukupi!');
+            return;
+        }
+        cart[id].qty++;
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartEl = document.getElementById('cartItems');
+        const totalEl = document.getElementById('totalAmount');
+        const countEl = document.getElementById('itemCount');
+        const btn = document.getElementById('checkoutBtn');
+        const hiddenInputs = document.getElementById('hiddenInputs');
+
+        const ids = Object.keys(cart);
+
+        // Reset semua badge dan border kartu
+        document.querySelectorAll('.product-card').forEach(card => {
+            const badge = card.querySelector('.qty-badge');
+            if (badge) badge.remove();
+            card.classList.remove('selected');
+        });
+
+        // Pasang badge di kartu yang dipilih
+        ids.forEach(id => {
+            const card = document.getElementById('card-' + id);
+            if (card) {
+                card.classList.add('selected');
+                const badge = document.createElement('div');
+                badge.className = 'qty-badge';
+                badge.textContent = cart[id].qty;
+                card.appendChild(badge);
+            }
+        });
+
+        if (ids.length === 0) {
+            cartEl.innerHTML = `
+                <div class="cart-empty" id="emptyMsg">
+                    <i class="bi bi-cart3"></i>
+                    <p>Klik produk untuk<br>menambahkan ke keranjang</p>
+                </div>`;
+            totalEl.textContent = 'Rp 0';
+            countEl.textContent = '0 item';
+            btn.disabled = true;
+            hiddenInputs.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+        let totalQty = 0;
+        let inputsHtml = '';
+
+        ids.forEach(id => {
+            const item = cart[id];
+            const subtotal = item.harga * item.qty;
+            total += subtotal;
+            totalQty += item.qty;
+
+            html += `
+                <div class="cart-item">
+                    <div style="flex:1">
+                        <div class="item-name">${item.nama}</div>
+                        <div class="item-price">${formatRp(item.harga)} × ${item.qty} = ${formatRp(subtotal)}</div>
+                    </div>
+                    <div class="qty-control">
+                        <button type="button" class="qty-btn minus" onclick="kurangItem(${id})">−</button>
+                        <span class="qty-num">${item.qty}</span>
+                        <button type="button" class="qty-btn plus" onclick="tambahItem(${id})">+</button>
+                    </div>
+                </div>`;
+
+            inputsHtml += `<input type="hidden" name="produk_id" value="${id}">`;
+            inputsHtml += `<input type="hidden" name="jumlah" value="${item.qty}">`;
+        });
+
+        cartEl.innerHTML = html;
+        hiddenInputs.innerHTML = inputsHtml;
+        totalEl.textContent = formatRp(total);
+        countEl.textContent = totalQty + ' item';
+        btn.disabled = false;
+    }
+
+    function clearCart() {
+        if (!confirm('Kosongkan keranjang?')) return;
+        cart = {};
+        renderCart();
+    }
+
+    function filterProduk() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

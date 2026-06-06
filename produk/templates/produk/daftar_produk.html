@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Produk{% endblock %}
+{% block page_title %}Manajemen Produk{% endblock %}
+{% block page_subtitle %}Kelola daftar produk halal UMKM{% endblock %}
+{% block topbar_action %}
+<a href="{% url 'tambah_produk' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Tambah Produk
+</a>
+{% endblock %}
+{% block content %}
+<div class="data-card">
+    <div class="data-card-header">
+        <h6><i class="bi bi-box-seam me-2 text-primary"></i>Daftar Produk</h6>
+        <small class="text-muted">{{ produk|length }} produk terdaftar</small>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produk</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Stok</th>
+                <th>Status Halal</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in produk %}
+            <tr>
+                <td><strong>{{ p.nama }}</strong></td>
+                <td><span class="text-muted">{{ p.kategori }}</span></td>
+                <td><strong>{{ p.harga|rupiah }}</strong></td>
+                <td>
+                    {% if p.stok == 0 %}
+                        <span class="badge-tidak">Habis</span>
+                    {% elif p.stok < 5 %}
+                        <span class="badge-perlu">⚠ {{ p.stok }}</span>
+                    {% else %}
+                        <span style="color:#2d3748;font-weight:600">{{ p.stok }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p.status_halal == 'halal' %}
+                        <span class="badge-halal">✅ Halal</span>
+                    {% elif p.status_halal == 'tidak_halal' %}
+                        <span class="badge-tidak">❌ Tidak Halal</span>
+                    {% else %}
+                        <span class="badge-perlu">⚠️ Perlu Dicek</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'edit_produk' p.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'hapus_produk' p.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <i class="bi bi-box-seam"></i>
+                        <p>Belum ada produk — <a href="{% url 'tambah_produk' %}">tambah sekarang</a></p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

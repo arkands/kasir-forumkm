@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Laporan Harian{% endblock %}
+{% block page_title %}Laporan Harian{% endblock %}
+{% block page_subtitle %}Rekap penjualan per hari{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="form-card py-3">
+            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                <input type="date" name="tanggal" class="form-control" style="max-width:200px" value="{{ tanggal|date:'Y-m-d' }}" onchange="this.form.submit()">
+                
+                <a href="{% url 'laporan_bulanan' %}" class="btn btn-outline-primary">Laporan Bulanan →</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f0fe">💰</div>
+            <div class="stat-value">{{ total_omzet|rupiah }}</div>
+            <div class="stat-label">Total Omzet</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e6f9f0">🧾</div>
+            <div class="stat-value">{{ total_transaksi }}</div>
+            <div class="stat-label">Jumlah Transaksi</div>
+        </div>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-header">
+        <h6><i class="bi bi-calendar-day me-2 text-primary"></i>Transaksi {{ tanggal|date:"d M Y" }}</h6>
+    </div>
+    <table class="table">
+        <thead>
+            <tr><th>#</th><th>Waktu</th><th>Total</th><th>Aksi</th></tr>
+        </thead>
+        <tbody>
+            {% for t in transaksi %}
+            <tr>
+                <td><span class="text-muted">#{{ t.pk }}</span></td>
+                <td>{{ t.tanggal|date:"H:i" }}</td>
+                <td><strong style="color:#0d6efd">{{ t.total|rupiah }}</strong></td>
+                <td><a href="{% url 'struk' t.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="empty-state"><i class="bi bi-calendar-x"></i><p>Tidak ada transaksi pada tanggal ini</p></div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
