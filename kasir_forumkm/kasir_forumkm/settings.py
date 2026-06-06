@@ -17,6 +17,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-q-j@*-hdji&l23f*8#hkd
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://kasir-forumkm-production.up.railway.app',
+]
 
 
 # Application definition
