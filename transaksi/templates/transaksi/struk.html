@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% load humanize %}
 <html lang="id">
 <head>
     <meta charset="utf-8">
@@ -177,7 +176,7 @@
             <div class="item-row">
                 <div class="item-name">{{ item.produk.nama }}</div>
                 <div class="item-qty">×{{ item.jumlah }}</div>
-                <div class="item-subtotal">Rp {{ item.subtotal|floatformat:0|intcomma }}</div>
+                <div class="item-subtotal">Rp {{ item.subtotal|rupiah }}</div>
             </div>
             {% endfor %}
         </div>
@@ -195,16 +194,16 @@
             </div>
             <div class="summary-row total">
                 <span class="s-label">Total</span>
-                <span class="s-value">Rp {{ transaksi.total|floatformat:0|intcomma }}</span>
+                <span class="s-value">Rp {{ transaksi.total|rupiah }}</span>
             </div>
             {% if transaksi.metode_bayar == 'cash' %}
             <div class="summary-row">
                 <span class="s-label">Uang Diterima</span>
-                <span class="s-value">Rp {{ transaksi.uang_bayar|floatformat:0|intcomma }}</span>
+                <span class="s-value">Rp {{ transaksi.uang_bayar|rupiah }}</span>
             </div>
             <div class="summary-row kembalian">
                 <span class="s-label">💰 Kembalian</span>
-                <span class="s-value">Rp {{ transaksi.kembalian|floatformat:0|intcomma }}</span>
+                <span class="s-value">Rp {{ transaksi.kembalian|rupiah }}</span>
             </div>
             {% endif %}
         </div>
