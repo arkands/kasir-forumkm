@@ -15,6 +15,8 @@ def kasir(request):
     if request.method == 'POST':
         produk_ids = request.POST.getlist('produk_id')
         jumlah_list = request.POST.getlist('jumlah')
+        metode_bayar = request.POST.get('metode_bayar', 'cash')
+        uang_bayar = request.POST.get('uang_bayar', 0)
 
         transaksi = Transaksi.objects.create(total=0)
         total = 0
@@ -23,11 +25,9 @@ def kasir(request):
             jml = int(jml)
             if jml <= 0:
                 continue
-
             produk = Produk.objects.get(pk=pid)
             subtotal = produk.harga * jml
             total += subtotal
-
             ItemTransaksi.objects.create(
                 transaksi=transaksi,
                 produk=produk,
@@ -35,17 +35,28 @@ def kasir(request):
                 harga_saat_beli=produk.harga,
                 subtotal=subtotal
             )
-
             produk.stok -= jml
             produk.save()
 
-        transaksi.total = total
-        transaksi.save()
-
         if total == 0:
-           transaksi.delete()
-           return redirect('kasir')
+            transaksi.delete()
+            return redirect('kasir')
 
+        transaksi.total = total
+        transaksi.metode_bayar = metode_bayar
+
+        if metode_bayar == 'cash':
+            try:
+                uang_bayar = int(uang_bayar)
+            except (ValueError, TypeError):
+                uang_bayar = total
+            transaksi.uang_bayar = uang_bayar
+            transaksi.kembalian = max(0, uang_bayar - total)
+        else:
+            transaksi.uang_bayar = total
+            transaksi.kembalian = 0
+
+        transaksi.save()
         return redirect('struk', pk=transaksi.pk)
 
     return render(request, 'transaksi/kasir.html', {'produk_list': produk_list})

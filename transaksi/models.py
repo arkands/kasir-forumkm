@@ -2,9 +2,18 @@ from django.db import models
 from produk.models import Produk
 
 class Transaksi(models.Model):
+    METODE_CHOICES = [
+        ('cash', 'Cash'),
+        ('transfer', 'Transfer'),
+        ('qris', 'QRIS'),
+    ]
+
     tanggal = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     catatan = models.TextField(blank=True)
+    metode_bayar = models.CharField(max_length=20, choices=METODE_CHOICES, default='cash')
+    uang_bayar = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    kembalian = models.DecimalField(max_digits=12, decimal_places=0, default=0)
 
     def __str__(self):
         return f"Transaksi #{self.pk} - {self.tanggal.strftime('%d/%m/%Y')}"
